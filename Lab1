@@ -1,0 +1,63 @@
+import matplotlib
+matplotlib.use('TkAgg')
+
+import requests
+import matplotlib.pyplot as plt
+import json
+
+# Получение данных через API
+pokemon_list = requests.get('https://pokeapi.co/api/v2/pokemon?limit=10').json()['results']
+print(json.dumps(pokemon_list, indent=2, ensure_ascii=False))
+
+# Парсинг JSON
+data = []
+for p in pokemon_list:
+    p_data = requests.get(p['url']).json()
+    stats = {s['stat']['name']: s['base_stat'] for s in p_data['stats']}
+    data.append({
+        'name': p_data['name'], 'height': p_data['height'], 'weight': p_data['weight'],
+        'hp': stats.get('hp', 0), 'attack': stats.get('attack', 0),
+        'defense': stats.get('defense', 0), 'speed': stats.get('speed', 0)
+    })
+
+# Визуализация
+fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+fig.suptitle('Анализ покемонов')
+
+names = [p['name'] for p in data]
+heights = [p['height'] for p in data]
+weights = [p['weight'] for p in data]
+attacks = [p['attack'] for p in data]
+defenses = [p['defense'] for p in data]
+hps = [p['hp'] for p in data]
+speeds = [p['speed'] for p in data]
+
+# Линейный
+axes[0,0].plot(names, heights, marker='o')
+axes[0,0].set(title='Рост', ylabel='Рост')
+axes[0,0].tick_params(axis='x', rotation=45)
+
+# Точечный
+sc = axes[0,1].scatter(heights, weights, c=speeds, cmap='coolwarm', s=100)
+axes[0,1].set(title='Вес vs Рост', xlabel='Рост', ylabel='Вес')
+plt.colorbar(sc, ax=axes[0,1], label='Скорость')
+
+# Столбчатый
+axes[0,2].bar(names, attacks)
+axes[0,2].set(title='Атака', ylabel='Атака')
+axes[0,2].tick_params(axis='x', rotation=45)
+
+# Горизонтальный
+axes[1,0].barh(names, defenses)
+axes[1,0].set(title='Защита', xlabel='Защита')
+
+# Гистограмма
+axes[1,1].hist(hps, bins=5, edgecolor='black')
+axes[1,1].set(title='Распределение HP', xlabel='HP', ylabel='Количество')
+
+# Круговая
+axes[1,2].pie([hps[0], sum(hps)-hps[0]], labels=[names[0], 'Остальные'], autopct='%1.1f%%')
+axes[1,2].set_title('Доля HP первого')
+
+plt.tight_layout()
+plt.show()

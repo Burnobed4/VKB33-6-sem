@@ -53,8 +53,10 @@ def validate_email(email, domains):
 def normalize_phone(phone):
     """Задание 6: Нормализация телефонных номеров"""
     digits = re.sub(r'\D', '', phone)
-    if digits.startswith('8'):
+    if digits.startswith('8') and len(digits)==11:
         digits = '7' + digits[1:]
+    elif digits.startswith('8') and len(digits)==10:
+        digits = '7' + digits
     elif not digits.startswith('7'):
         digits = '7' + digits
     return '+' + digits
@@ -98,12 +100,13 @@ def main():
             result = validate_password(password)
             print(f"Результат: {result}")
 
+
         elif choice == '5':
             email = input("Введите email: ")
-            domains_input = input("Введите домены через запятую: ")
-            domains = [d.strip() for d in domains_input.split(',')]
+            domains = ['gmail.com', 'yandex.ru', 'edu.ru']
             result = validate_email(email, domains)
             print(f"Результат: {result}")
+            print(f"Разрешённые домены: {', '.join(domains)}")
 
         elif choice == '6':
             phone = input("Введите телефон: ")
